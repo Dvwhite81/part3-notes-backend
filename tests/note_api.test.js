@@ -69,6 +69,27 @@ describe('when there is initially some notes saved', () => {
   })
 
   describe('addition of a new note', () => {
+    let headers
+
+    beforeEach(async () => {
+      const newUser = {
+        username: 'testUsername',
+        name: 'testName',
+        password: 'password'
+      }
+
+      await api
+        .post('/api/users')
+        .send(newUser)
+
+      const result = await api
+        .post('/api/login')
+        .send(newUser)
+
+      headers = {
+        'Authorization': `Bearer ${result.body.token}`
+      }
+    })
     test('succeeds with valid data', async () => {
       const newNote = {
         content: 'async/await simplifies making async calls',
@@ -79,6 +100,7 @@ describe('when there is initially some notes saved', () => {
         .post('/api/notes')
         .send(newNote)
         .expect(201)
+        .set(headers)
         .expect('Content-Type', /application\/json/)
 
       const notesAtEnd = await helper.notesInDb()
@@ -98,6 +120,7 @@ describe('when there is initially some notes saved', () => {
       await api
         .post('/api/notes')
         .send(newNote)
+        .set(headers)
         .expect(400)
 
       const notesAtEnd = await helper.notesInDb()
